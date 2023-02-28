@@ -114,7 +114,8 @@ body {
       display: flex;
       justify-content: center;
       align-items: center;
-      .shape {
+      .shape,
+      #pen {
         width: 60px;
         height: 60px;
         margin: 0 10px;
@@ -124,6 +125,7 @@ body {
         justify-content: center;
         align-items: center;
         font-size: 2rem;
+        transition: 0.3s ease-in-out;
 
         &.active {
           transform: scale(1.1);

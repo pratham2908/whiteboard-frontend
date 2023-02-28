@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3001");
+const socket = io("localhost:3001");
 socket.on("connect", () => {
     console.log("connected");
 });
@@ -26,6 +26,10 @@ let prevY = 0;
 let x = 0;
 let y = 0;
 let elapsed = performance.now();
+const triangle = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+const rectangle = [0, 0, 0, 0];
+const circle = [0, 0, 0, 0, 0];
+
 
 
 const data = { color: "#000", width: 1 };
@@ -34,40 +38,7 @@ const sizes = document.querySelectorAll(".sizes .size");
 const eraser = document.querySelector("#eraser");
 const shapes = document.querySelectorAll(".shapes .shape");
 
-
-
-window.addEventListener('mousemove', (e) => {
-    if (performance.now() - time < 10) return;
-    prevX = x;
-    prevY = y;
-    x = e.offsetX;
-    y = e.offsetY;
-    time = performance.now();
-})
-
-canvas.addEventListener('mousedown', () => {
-    if (Array.from(shapes).some(shape => shape.classList.contains("active"))) return;
-    interval = setInterval(() => drawLine(), 10);
-})
-
-canvas.addEventListener('mouseup', () => {
-    if (Array.from(shapes).some(shape => shape.classList.contains("active"))) return;
-    clearInterval(interval);
-})
-
-canvas.addEventListener("mouseleave", () => {
-    clearInterval(interval);
-})
-
-
-function drawLine() {
-    ctx.beginPath();
-    ctx.moveTo(prevX, prevY)
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    socket.emit("newData", { prevX, prevY, x, y, color: data.color, width: data.width });
-}
-
+// click events
 
 colors.forEach((color, index) => {
     color.addEventListener("click", () => {
@@ -116,42 +87,112 @@ eraser.addEventListener("click", () => {
     sizes.forEach(size => size.classList.remove("active"));
     colors.forEach(color => color.classList.remove("active"));
     shapes.forEach(shape => shape.classList.remove("active"));
+    pen.classList.remove("active")
     clearInterval(colorInterval);
 })
 
+const pen = document.querySelector("#pen");
 
-const triangle = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+pen.addEventListener("click", () => {
+    shapes.forEach(shape => shape.classList.remove("active"));
+    eraser.classList.remove("active");
+    clearInterval(colorInterval);
+    pen.classList.add("active")
+})
 
 shapes.forEach(shape => {
     shape.addEventListener("click", () => {
         shapes.forEach(shape => shape.classList.remove("active"));
+        pen.classList.remove("active");
         shape.classList.add("active");
         eraser.classList.remove("active");
-        sizes.forEach(size => size.classList.remove("active"));
-        colors.forEach(color => color.classList.remove("active"));
         clearInterval(colorInterval);
-
-        canvas.addEventListener("mousedown", (e) => {
-            triangle[0].x = e.offsetX;
-            triangle[1].y = e.offsetY;
-
-            canvas.addEventListener("mousemove", drawShape)
-
-            canvas.addEventListener("mouseup", () => {
-                canvas.removeEventListener("mousemove", drawShape);
-                canvas.removeEventListener("mouseup", () => { });
-                drawTriangle();
-
-            })
-        })
     })
 })
 
-function drawShape(e) {
-    triangle[0].y = e.offsetY;
-    triangle[2].x = e.offsetX;
-    triangle[2].y = e.offsetY;
-    triangle[1].x = (triangle[0].x + triangle[2].x) / 2;
+
+
+// event listeners
+
+window.addEventListener('mousemove', (e) => {
+    if (performance.now() - time < 10) return;
+    prevX = x;
+    prevY = y;
+    x = e.offsetX;
+    y = e.offsetY;
+    time = performance.now();
+})
+
+canvas.addEventListener('mousedown', (e) => {
+    const shape = Array.from(shapes).find(shape => shape.classList.contains("active"));
+    if (shape) {
+        triangle[0].x = e.offsetX;
+        triangle[1].y = e.offsetY;
+        rectangle[0] = e.offsetX;
+        rectangle[1] = e.offsetY;
+        circle[0] = e.offsetX;
+        circle[1] = e.offsetY;
+
+        canvas.addEventListener("mousemove", callDrawShape);
+
+        function callDrawShape(e) {
+            drawShape(e, shape);
+        }
+
+        canvas.addEventListener("mouseup", () => {
+            canvas.removeEventListener("mousemove", callDrawShape);
+            if (shape.id == "triangle") {
+                drawTriangle()
+            } else if (shape.id == "rectangle") {
+                drawRectangle()
+            } else {
+                drawCircle();
+            }
+        }, { once: true })
+
+
+        return;
+    };
+    interval = setInterval(() => drawLine(), 10);
+})
+
+canvas.addEventListener('mouseup', () => {
+    if (Array.from(shapes).some(shape => shape.classList.contains("active"))) return;
+    clearInterval(interval);
+})
+
+canvas.addEventListener("mouseleave", () => {
+    clearInterval(interval);
+})
+
+function drawLine() {
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY)
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    socket.emit("newData", { prevX, prevY, x, y, color: data.color, width: data.width });
+}
+
+
+function drawShape(e, shape) {
+    console.log("drawing shape");
+    if (shape.id == "triangle") {
+        triangle[0].y = e.offsetY;
+        triangle[2].x = e.offsetX;
+        triangle[2].y = e.offsetY;
+        triangle[1].x = (triangle[0].x + triangle[2].x) / 2;
+    }
+
+    if (shape.id == "rectangle") {
+        rectangle[2] = e.offsetX;
+        rectangle[3] = e.offsetY;
+    }
+
+    if (shape.id == "circle") {
+        circle[2] = (e.offsetX - circle[0]) / 2 + circle[0];
+        circle[3] = (e.offsetY - circle[1]) / 2 + circle[1];
+        circle[4] = Math.sqrt(Math.pow(e.offsetX - circle[2], 2) + Math.pow(e.offsetY - circle[3], 2));
+    }
 }
 
 
@@ -161,6 +202,18 @@ function drawTriangle() {
     ctx.lineTo(triangle[1].x, triangle[1].y);
     ctx.lineTo(triangle[2].x, triangle[2].y);
     ctx.lineTo(triangle[0].x, triangle[0].y);
+    ctx.stroke();
+}
+
+function drawRectangle() {
+    ctx.beginPath();
+    ctx.rect(rectangle[0], rectangle[1], rectangle[2] - rectangle[0], rectangle[3] - rectangle[1]);
+    ctx.stroke();
+}
+
+function drawCircle() {
+    ctx.beginPath();
+    ctx.arc(circle[2], circle[3], circle[4], 0, 2 * Math.PI);
     ctx.stroke();
 }
 
