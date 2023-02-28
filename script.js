@@ -167,6 +167,7 @@ canvas.addEventListener("mouseleave", () => {
 
 function drawLine() {
     ctx.beginPath();
+    ctx.strokeStyle = data.color;
     ctx.moveTo(prevX, prevY)
     ctx.lineTo(x, y);
     ctx.stroke();
