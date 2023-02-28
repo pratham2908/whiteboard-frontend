@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3001");
+const socket = io("https://whiteboard-server.onrender.com");
 socket.on("connect", () => {
     console.log("connected");
 });
