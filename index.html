@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+    <script
+      src="https://kit.fontawesome.com/09bf6604f2.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+      integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div class="toolbar">
+      <div class="sizes">
+        <div class="size active" style="--width: 1"></div>
+        <div class="size" style="--width: 2"></div>
+        <div class="size" style="--width: 3"></div>
+        <div class="size" style="--width: 4"></div>
+      </div>
+
+      <div class="colors">
+        <div class="color active" style="--color: black"></div>
+        <div class="color" style="--color: blue"></div>
+        <div class="color" style="--color: green"></div>
+        <div class="color" style="--color: yellow"></div>
+        <div class="color" style="--color: red"></div>
+        <div
+          class="color"
+          style="
+            --color: linear-gradient(
+              90deg,
+              #ff0000 0%,
+              #ff7f00 14%,
+              #ffff00 28%,
+              #00ff00 42%,
+              #0000ff 56%,
+              #4b0082 70%,
+              #ee82ee 84%,
+              #ff0000 100%
+            );
+          "
+        ></div>
+      </div>
+
+      <div class="extras">
+        <div id="eraser"></div>
+        <div id="clearScreen">Clear</div>
+        <div class="shapes">
+          <div class="shape" id="circle" style="--shape: circle">
+            <i class="far fa-circle"></i>
+          </div>
+          <div class="shape" id="square" style="--shape: square">
+            <i class="fa-regular fa-square"></i>
+          </div>
+          <div
+            class="shape"
+            id="triangle"
+            style="--shape: triangle; transform: rotate(-90deg)"
+          >
+            <i class="fa-solid fa-play"></i>
+          </div>
+        </div>
+      </div>
+
+      <div id="cursor"></div>
+    </div>
+    <canvas></canvas>
+    <script src="script.js"></script>
+  </body>
+</html>
